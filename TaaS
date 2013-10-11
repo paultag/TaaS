@@ -20,13 +20,12 @@ CONTAINER=$(docker run \
     -v ${WORKDIR}:/mnt/workdir \
     paultag/sbuild-createchroot \
     sbuild-createchroot \
-        --make-sbuild-tarball=/tmp/sbuild.tar.gz \
+        --make-sbuild-tarball=/tmp/${DIST}.tar.gz \
         ${DIST} \
         /mnt/workdir/tmp/ \
         http://http.debian.net/debian)
 
 docker attach ${CONTAINER}
 docker wait ${CONTAINER}
-echo docker cp ${CONTAINER}:/tmp/sbuild.tar.gz ${DIST}.tar.gz
-docker cp ${CONTAINER}:/tmp/sbuild.tar.gz ${DIST}.tar.gz
-#docker rm ${CONTAINER}
+docker cp ${CONTAINER}:/tmp/${DIST}.tar.gz .
+docker rm ${CONTAINER}
