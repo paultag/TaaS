@@ -15,6 +15,8 @@ DIST=$1
 WORKDIR=$(mktemp -d)
 mkdir ${WORKDIR}/tmp
 
+echo "[ ] OK. Time to grind this out. Host dir is ${WORKDIR}"
+
 CONTAINER=$(docker run \
     -d \
     -privileged \
@@ -27,7 +29,38 @@ CONTAINER=$(docker run \
         /mnt/workdir/tmp/ \
         http://http.debian.net/debian)
 
-docker attach ${CONTAINER}
+trap ctrl_c INT
+
+function ctrl_c() {
+    echo "[ ] caught C-c, killing container"
+    docker kill ${CONTAINER}
+    echo "[✓]"
+    echo "[ ] now removing."
+    docker rm ${CONTAINER}
+    echo "[✓]"
+    echo "[X] leaked space; kill kill! ${WORKDIR}"
+    exit 2
+}
+
+
+echo "[ ] Building a ${DIST} image now. Wait a while."
 docker wait ${CONTAINER}
+echo "[✓]"
+
+echo "[ ] OK. Moving the tarball out to ${DIST}.tar.gz"
 docker cp ${CONTAINER}:/tmp/${DIST}.tar.gz .
+echo "[✓]"
+
+echo "[ ] OK. dumping logs"
+date --rfc-2822 > ${DIST}.log
+echo "" >> ${DIST}.log
+docker logs ${CONTAINER} >> ${DIST}.log
+echo "[✓]"
+
+echo "[ ] OK. purging container"
 docker rm ${CONTAINER}
+echo "[✓]"
+
+echo "[ ] OK. purging workdir (${WORKDIR})"
+rm -rf ${WORKDIR}
+echo "[✓]"
