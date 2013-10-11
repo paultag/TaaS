@@ -1,0 +1,32 @@
+#!/bin/bash
+
+DIST=unstable
+
+if [ "x$1" = "x" ]; then
+    echo "Error: - usage:"
+    echo "  $0 unstable"
+    exit 1
+fi
+
+DIST=$1
+
+WORKDIR=$(mktemp -d)
+mkdir ${WORKDIR}/tmp
+
+CONTAINER=$(docker run \
+    -d \
+    -privileged \
+    -u root \
+    -v ${WORKDIR}:/mnt/workdir \
+    paultag/sbuild-createchroot \
+    sbuild-createchroot \
+        --make-sbuild-tarball=/tmp/sbuild.tar.gz \
+        ${DIST} \
+        /mnt/workdir/tmp/ \
+        http://http.debian.net/debian)
+
+docker attach ${CONTAINER}
+docker wait ${CONTAINER}
+echo docker cp ${CONTAINER}:/tmp/sbuild.tar.gz ${DIST}.tar.gz
+docker cp ${CONTAINER}:/tmp/sbuild.tar.gz ${DIST}.tar.gz
+#docker rm ${CONTAINER}
