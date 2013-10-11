@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (c) Paul R. Tagliamonte <tag@pault.ag>, 2013 under the terms
+# and conditions of the MIT/Expat license.
 
 DIST=unstable
 
